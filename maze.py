@@ -93,9 +93,59 @@ def carve_maze(cx, cy, maze):
             maze[cy][cx] |= d
             carve_maze(nx, ny, maze)
 
-sys.setrecursionlimit(10000) # would love to optimize
-w = 127
-h = 127
+def carve_maze_iterative(start_x, start_y, maze):
+    directions = [N, E, S, W]
+    # shuffle(directions)
+    c = (start_x, start_y)
+    stack = []
+    cells_visited = 1
+    w = len(maze[0])
+    h = len(maze)
+    number_of_cells = w * h
+    number_of_iterations = 0
+    while cells_visited < number_of_cells:
+        directions_left = []
+        cx = c[0]
+        cy = c[1]
+        for d in directions:
+            # check if north or south
+            lx = cx + DIRECTIONS[d][0]
+            ly = cy + DIRECTIONS[d][1]
+            if clamp(0, w, lx) and clamp(0, h, ly) and maze[ly][lx] == 0:
+                directions_left.append(d)
+        print("Directions left for {}, {}: {}".format(cx, cy, directions_left))
+        if len(directions_left) != 0:
+            shuffle(directions_left)
+            chosen_dir = directions_left[0]
+            print("Chosen dir: {}".format(chosen_dir))
+            nx = cx + DIRECTIONS[chosen_dir][0]
+            ny = cy + DIRECTIONS[chosen_dir][1]
+            print("Going to {}, {}".format(nx, ny))
+            chosen = (nx, ny)
+            maze[cy][cx] |= chosen_dir
+            maze[ny][nx] |= 8//chosen_dir
+            stack.append(c)
+            c = chosen
+            cells_visited += 1
+            number_of_iterations += 1
+        elif len(stack) != 0:
+            c = stack.pop()
+            number_of_iterations += 1
+        else:
+            print("{} visited, {} iterations".format(cells_visited, number_of_iterations))
+            number_of_iterations += 1
+            break
+
+def clamp(a, b, c):
+    return a <= c and c < b
+
+
+# sys.setrecursionlimit(10000) # would love to optimize
+
+
+w = 15
+h = 15
 maze = make_maze(w, h)
-carve_maze(0, 0, maze)
+carve_maze_iterative(0, 0, maze)
+# carve_maze(0, 0, maze)
 draw_maze(maze, w, h, True)
