@@ -219,7 +219,23 @@ def loop_deadends(maze, w, h, number_of_points = -1):
         #     parts.remove( (nx, ny) )
         # cell_list.append( part )
 
+        '''
+            A dead end is a cell that only has one direction (points to the cell that leads to it)
 
+            To determine which walls to break down, we must first see if there is a path to the cell behind the wall
+        from the center. The cell is surrounded by four walls, and each wall is surrounded by two corners. We can draw it as:
+
+            C 1 C
+            4 X 2
+            C 8 C
+
+            We can abstract the numbered and corner cell's other connections as they are currently irrelevant.
+        From X to any numbered cell N, we can form two 'squares'. Both 'squares' have two of their corners as X and N,
+        and one other numbered cell and a corner. If either of these 'squares' contains a path from X to N,
+        then we cannot break the wall down between X and N, as the whole square will be connected.
+        Technically, this is just a design choice. Is this a lot of work for no reason? Probably!
+
+        '''
     return cell_list
 
 def clamp(a, b, c):
