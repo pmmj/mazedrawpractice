@@ -14,7 +14,7 @@ DIRECTIONS = {
     W: (-1, 0)
 }
 
-def draw_maze(maze, w, h, start_and_end = False):
+def draw_maze(maze, w, h, start_and_end = False, cell_list = []):
     picture = Image.new("RGB", (4*w + 1, 4*h + 1), "#000")
     for i in range(w):
         for j in range(h):
@@ -74,9 +74,13 @@ def draw_maze(maze, w, h, start_and_end = False):
         end = (4 * randrange(w//2, w) + 2, 4 * randrange(0, h) + 2)
         picture.putpixel( start, (255, 0, 0) )
         picture.putpixel( end, (255, 0, 0) )
+
+    if len(cell_list) > 0:
+        for cell in cell_list:
+            picture.putpixel( cell, (255, 100, 200))
     return picture.save("./maze.png")
 
-def draw_maze_dense(maze, w, h):
+def draw_maze_dense(maze, w, h, cell_list = []):
     picture = Image.new("RGB", (2*w + 1, 2*h + 1), "#000")
     for j in range(h):
         for i in range(w):
@@ -102,6 +106,10 @@ def draw_maze_dense(maze, w, h):
             check = maze[j][i] & W
             if check != 0 and check & (check - 1) == 0:
                 picture.putpixel( (x-1, y), (200,200,200))
+
+    if len(cell_list) > 0:
+        for cell in cell_list:
+            picture.putpixel( (2*cell[0] + 1, 2*cell[1] + 1), (255, 100, 200))
     return picture.save("./maze.png")
 
 def make_maze(w, h):
@@ -180,6 +188,7 @@ def loop_deadends(maze, w, h, number_of_points = -1):
         for i in range(w):
             check = maze[j][i]
             if check & (check - 1) == 0:
+                print("deadend at {}, {}: {}".format(i, j, check))
                 if not (clamp(0, w, i + DIRECTIONS[check][0]) and clamp(0, h, j + DIRECTIONS[check][1]) ):
                     outside_ends.append( (i, j) )
                 else:
@@ -193,13 +202,25 @@ def loop_deadends(maze, w, h, number_of_points = -1):
         parts = ends[:number_of_points]
 
     print("List of parts: {}".format(parts))
+    cell_list = []
+    shuffle(parts)
     while len(parts) > 0:
         part = parts.pop(0)
-        end = maze[part[0]][part[1]]
-        nx = part[0] + DIRECTIONS[end][0]
-        ny = part[1] + DIRECTIONS[end][1]
-        print( "{}, {}: {} -> {}, {}: {}".format( part[0], part[1], end, nx, ny, 8//end))
-        maze[ny][nx] |= 8//end
+        end = maze[part[1]][part[0]]
+        # print("end: {} at {}, {}".format(end, part[0], part[1]))
+        # nx = part[0] + DIRECTIONS[8//end][0]
+        # ny = part[1] + DIRECTIONS[8//end][1]
+        # print("{}, {}".format(nx, ny))
+        # if clamp(0, w, nx) and clamp(0, h, ny):
+        #     __n = maze[ny][nx]
+        #     maze[ny][nx] |= end
+        #     print( "{}, {}: {} -> {}, {}: {} | {} -> {}".format( part[0], part[1], end, nx, ny, 8//end, __n, maze[ny][nx]))
+        # if (nx, ny) in parts:
+        #     parts.remove( (nx, ny) )
+        # cell_list.append( part )
+
+
+    return cell_list
 
 def clamp(a, b, c):
     return a <= c and c < b
@@ -213,5 +234,7 @@ h = 15
 maze = make_maze(w, h)
 carve_maze_iterative(0, 0, maze)
 # carve_maze(0, 0, maze)
-loop_deadends(maze, w, h)
-draw_maze_dense(maze, w, h)
+cl = []
+# cl = loop_deadends(maze, w, h)
+draw_maze_dense(maze, w, h, cl)
+
